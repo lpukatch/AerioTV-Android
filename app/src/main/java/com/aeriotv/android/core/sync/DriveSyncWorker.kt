@@ -68,7 +68,7 @@ class DriveSyncWorker @AssistedInject constructor(
             emptyMap()
         }
         val pulled = sync.pullAll(token, enabled)
-        val failures = (pushed + pulled).count { !it.value }
+        val failures = countSyncFailures(pushed, pulled)
         Log.i(TAG, "Periodic sync done: ${pushed.size}↑ ${pulled.size}↓ failures=$failures")
         if (failures == 0) Result.success() else Result.retry()
     }.getOrElse { t ->
@@ -134,3 +134,9 @@ class DriveSyncWorker @AssistedInject constructor(
         }
     }
 }
+
+/** Push and pull can contain the same categories; neither result supersedes the other. */
+internal fun countSyncFailures(
+    pushed: Map<SyncCategory, Boolean>,
+    pulled: Map<SyncCategory, Boolean>,
+): Int = pushed.values.count { !it } + pulled.values.count { !it }
