@@ -5162,7 +5162,7 @@ class AerioExoPlayerHolder @Inject constructor(
          *  switch onto the new stream is the intent, and the keyframe gate in
          *  [SwitchSkipMediaSource] is what guarantees a clean decoder start, so
          *  there is no reason to play out a 16 to 22 s old buffer first. */
-        private const val SWITCH_SKIP_MIN_NEW_DATA_MS = 750L
+        private const val SWITCH_SKIP_MIN_NEW_DATA_MS = 400L
         /** A skip that has not seen new data by now is abandoned (old buffer plays out). */
         private const val SWITCH_SKIP_TIMEOUT_MS = 30_000L
         /** Underruns inside this window after a jump do not arm the resume gate. */
