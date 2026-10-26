@@ -3814,11 +3814,8 @@ class AerioExoPlayerHolder @Inject constructor(
      *  their first request (see [LiveCallTracker]). Main thread only. */
     private var pendingRetireGate: java.util.concurrent.CountDownLatch? = null
 
-    /** Cancel [stale] Calls once ExoPlayer has released the old period.
-     *  Posted to the playback looper, so it runs after the stop /
-     *  setMediaSource already queued there has cancelled the loader: the
-     *  resulting read failure then reports as a canceled load, never as a
-     *  load error the reconnect / 503 / stall paths would act on. */
+    /** Cancel [stale] Calls immediately on the main thread so old connections are
+     *  released instantly and the new source's loader thread opens without gate wait. */
     private fun retireLiveCalls(p: ExoPlayer, stale: List<LiveCallTracker>) {
         val gate = pendingRetireGate
         pendingRetireGate = null
@@ -3826,18 +3823,8 @@ class AerioExoPlayerHolder @Inject constructor(
             gate?.countDown()
             return
         }
-        val posted = android.os.Handler(p.playbackLooper).post {
-            try {
-                stale.forEach { it.cancelAll() }
-            } finally {
-                gate?.countDown()
-            }
-        }
-        if (!posted) {
-            // Playback looper already gone: nothing is loading, close now.
-            stale.forEach { it.cancelAll() }
-            gate?.countDown()
-        }
+        stale.forEach { it.cancelAll() }
+        gate?.countDown()
     }
 
     /**
